@@ -70,23 +70,31 @@ button:active {
 }
 
 .field {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
 
-  width: 200px;
-
   border: 1px solid hsl(0, 0%, 100%);
   border-radius: 5px;
-  box-sizing: content-box;
 }
 
 .square {
   width: 50px;
   height: 50px;
 
-  border: 1px solid hsl(0, 0%, 100%);
+  margin-left: 2px;
+  margin-top: 2px;
+
+  border: 0;
   border-radius: 5px;
-  box-sizing: border-box;
+}
+
+.rotating-square {
+  position: absolute;
+  z-index: -1;
+
+  border: 2px solid hsl(0, 0%, 0%);
+  border-radius: 7px;
 }
 
 .solution {

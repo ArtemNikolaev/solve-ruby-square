@@ -15,17 +15,19 @@ commonSquareSizeSelect.value = commonSquareSize;
 rotatingSquareSizeSelect.value = rotatingSquareSize;
 
 rubySquareArray = getRubySquareArray(commonSquareSize);
-drawRubySquare(rubySquareArray);
+drawRubySquare(rubySquareArray, rotatingSquareSize);
 
 commonSquareSizeSelect.addEventListener('change', (e) => {
   commonSquareSize = Number(e.target.value);
 
   rubySquareArray = getRubySquareArray(commonSquareSize);
-  drawRubySquare(rubySquareArray);
+  drawRubySquare(rubySquareArray, rotatingSquareSize);
 });
 
 rotatingSquareSizeSelect.addEventListener('change', (e) => {
   rotatingSquareSize = Number(e.target.value);
+
+  drawRubySquare(rubySquareArray, rotatingSquareSize);
 });
 
 rubySquare.addEventListener('click', (e) => {
@@ -92,13 +94,21 @@ function getRubySquareArray(squareSize) {
  * draw ruby square
  * 
  * @param {array} rubySquareArray
+ * @param {number} rotatingSquareSize
  * @return {void}
  */
-function drawRubySquare(rubySquareArray) {
+function drawRubySquare(rubySquareArray, rotatingSquareSize) {
   const length = rubySquareArray.length;
 
   rubySquare.innerHTML = '';
-  rubySquare.style.width = `${50 * length}px`;
+  rubySquare.style.width = `${50 * length + 2 * length}px`;
+
+  const rotatingSquare = document.createElement('div');
+  rotatingSquare.classList.add('rotating-square');
+  rotatingSquare.style.width = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
+  rotatingSquare.style.height = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
+
+  rubySquare.appendChild(rotatingSquare);
 
   for (let i = 0; i < length; ++i) {
     for (let j = 0; j < length; ++j) {
