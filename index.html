@@ -5,25 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Search for solutions Ruby Square</title>
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      height: 100%;
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-  </style>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div class="wrapper">
+    <div class="control">
+      <div class="form-item">
+        <div><label for="common-square-size">Set size of the field</label></div>
+        <input
+          id="common-square-size"
+          type="text"
+        >
+      </div>
+      <div class="form-item">
+        <div><label for="rotating-square-size">Set size of the rotating square</label></div>
+        <input
+          id="rotating-square-size"
+          type="text"
+        >
+      </div>
+      <div class="form-item">
+        <div>&nbsp;</div>
+        <button id="search-button">Search for solution</button>
+      </div>
+    </div>
+    <div class="preview">
+      <span>Fill in the field with initial data (click on the squares)</span>
+      <div
+        id="field"
+        class="field"
+      >
+        <div class="square violet"></div>
+        <div class="square violet"></div>
+        <div class="square orange"></div>
+        <div class="square orange"></div>
+        <div class="square violet"></div>
+        <div class="square violet"></div>
+        <div class="square orange"></div>
+        <div class="square orange"></div>
+        <div class="square green"></div>
+        <div class="square green"></div>
+        <div class="square yellow"></div>
+        <div class="square yellow"></div>
+        <div class="square green"></div>
+        <div class="square green"></div>
+        <div class="square yellow"></div>
+        <div class="square yellow"></div>
+      </div>
+    </div>
+    <div class="solution">
+      <div
+        id="field"
+        class="field"
+      >
+        <div class="square violet"></div>
+        <div class="square violet"></div>
+        <div class="square orange"></div>
+        <div class="square orange"></div>
+        <div class="square violet"></div>
+        <div class="square violet"></div>
+        <div class="square orange"></div>
+        <div class="square orange"></div>
+        <div class="square green"></div>
+        <div class="square green"></div>
+        <div class="square yellow"></div>
+        <div class="square yellow"></div>
+        <div class="square green"></div>
+        <div class="square green"></div>
+        <div class="square yellow"></div>
+        <div class="square yellow"></div>
+      </div>
+    </div>
+  </div>
   <script src="./main.js"></script>
 </body>
 </html>
