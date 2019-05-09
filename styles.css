@@ -69,7 +69,7 @@ button:active {
   border-bottom: 1px solid hsl(0, 0%, 80%);
 }
 
-.field {
+.ruby-square {
   position: relative;
   display: flex;
   flex-wrap: wrap;
@@ -90,6 +90,10 @@ button:active {
 }
 
 .rotating-square {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   position: absolute;
   z-index: -1;
 
@@ -97,9 +101,17 @@ button:active {
   border-radius: 7px;
 }
 
-.solution {
+.rotating-square > span {
+  font-size: 100px;
+}
+
+.output-solution {
   display: flex;
   flex-wrap: wrap;
+}
+
+.solution-step + .solution-step {
+  margin-left: 16px;
 }
 
 .violet {
