@@ -1,58 +1,72 @@
-let rubySquareArray = [];
+/* get HTML Elements */
+const rubySquareDiv = document.querySelector('#ruby-square');
+const commonSquareSizeSelect = document.querySelector('#common-square-size');
+const rotatingSquareSizeSelect = document.querySelector('#rotating-square-size');
+const searchButton = document.querySelector('#search-button');
 
-const initialOutputText = 'To see the solution, click the search button';
-const colors = ['violet', 'orange', 'green', 'yellow'];
+const outputTextSpan = document.querySelector('#output-text');
+const outputSolutionDiv = document.querySelector('#output-solution');
+
+
+/* set initial values */
+let rubySquare = {
+  spinX: 1,
+  spinY: 1,
+  spinDirection: null,
+  square: [],
+};
+
+const solution = {
+  error: false,
+  outputText: 'To see the solution, click the search button',
+  steps: [],
+};
+
+const colors = ['violet', 'orange', 'green', 'yellow', 'blue'];
 
 let commonSquareSize = 4;
 let rotatingSquareSize = 2;
 
 
-const rubySquare = document.querySelector('#ruby-square');
-
-const commonSquareSizeSelect = document.querySelector('#common-square-size');
-const rotatingSquareSizeSelect = document.querySelector('#rotating-square-size');
-const searchButton = document.querySelector('#search-button');
-
-const outputText = document.querySelector('#output-text');
-const outputSolution = document.querySelector('#output-solution');
-
+/* initialization */
 commonSquareSizeSelect.value = commonSquareSize;
 rotatingSquareSizeSelect.value = rotatingSquareSize;
 
-rubySquareArray = getRubySquare(commonSquareSize);
-drawRubySquare(rubySquareArray, rotatingSquareSize);
+rubySquare = getRubySquare(commonSquareSize);
+drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
+drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv);
 
-outputText.innerText = initialOutputText;
 
+/* create event listeners */
 commonSquareSizeSelect.addEventListener('change', (e) => {
   commonSquareSize = Number(e.target.value);
 
-  rubySquareArray = getRubySquare(commonSquareSize);
-  drawRubySquare(rubySquareArray, rotatingSquareSize);
+  rubySquare = getRubySquare(commonSquareSize);
+  drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
 });
 
 rotatingSquareSizeSelect.addEventListener('change', (e) => {
   rotatingSquareSize = Number(e.target.value);
 
-  drawRubySquare(rubySquareArray, rotatingSquareSize);
+  drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
 });
 
-rubySquare.addEventListener('click', (e) => {
-  if (e.target === rubySquare) return;
+rubySquareDiv.addEventListener('click', (e) => {
+  if (e.target === rubySquareDiv) return;
 
   const square = e.target;
   const ids = square.id.split('-');
 
   const i = Number(ids[0]);
   const j = Number(ids[1]);
+  
+  const oldColor = colors[rubySquare.square[i][j]];
 
-  const oldColor = colors[rubySquareArray[i][j].color];
-
-  rubySquareArray[i][j].color = rubySquareArray[i][j].color === 3
+  rubySquare.square[i][j] = rubySquare.square[i][j] === (colors.length - 1) 
     ? 0
-    : rubySquareArray[i][j].color + 1;
+    : rubySquare.square[i][j] + 1;
 
-  const newColor = colors[rubySquareArray[i][j].color];
+  const newColor = colors[rubySquare.square[i][j]];
 
   square.classList.replace(oldColor, newColor);
 });
@@ -62,8 +76,8 @@ searchButton.addEventListener('click', () => {
   commonSquareSizeSelect.disabled = true;
   rotatingSquareSizeSelect.disabled = true;
 
-  const solution = findSolution(rubySquareArray);
-  drawSolution(solution, rotatingSquareSize);
+  const solution = findSolution(rubySquare.square);
+  drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv);
 
   searchButton.disabled = false;
   commonSquareSizeSelect.disabled = false;
@@ -72,16 +86,21 @@ searchButton.addEventListener('click', () => {
 
 
 /**
- * get ruby square array
+ * get ruby square
  * 
- * @param {number} squareSize - side of square
- * @return {array} ruby square array
+ * @param {Number} squareSize - side of square
+ * @return {Object} ruby square
  */
 function getRubySquare(squareSize) {
-  const rubySquareArray = [];
+  const rubySquare = {
+    spinX: 1,
+    spinY: 1,
+    spinDirection: null,
+    square: [],
+  };
 
   for (let i = 0; i < squareSize; ++i) {
-    rubySquareArray[i] = [];
+    rubySquare.square[i] = [];
 
     const isTop = !Math.floor(i / (squareSize / 2));
 
@@ -96,43 +115,68 @@ function getRubySquare(squareSize) {
       else if (isLeft) color = 2;
       else color = 3;
 
-      rubySquareArray[i][j] = {
-        color,
-      };
+      rubySquare.square[i][j] = color;
     }
   }
 
-  return rubySquareArray;
+  return rubySquare;
 }
-
 
 /**
  * draw ruby square
  * 
- * @param {array} rubySquareArray
- * @param {number} rotatingSquareSize
+ * @param {Object} rubySquare
+ * @param {Number} rotatingSquareSize
+ * @param {Element} rubySquareDiv
  * @return {void}
  */
-function drawRubySquare(rubySquareArray, rotatingSquareSize) {
-  const length = rubySquareArray.length;
+function drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv) {
+  const length = rubySquare.square.length;
 
-  rubySquare.innerHTML = '';
-  rubySquare.style.width = `${50 * length + 2 * length}px`;
+  rubySquareDiv.innerHTML = '';
+  rubySquareDiv.style.width = `${50 * length + 2 * length}px`;
 
-  const rotatingSquare = document.createElement('div');
-  rotatingSquare.classList.add('rotating-square');
-  rotatingSquare.style.width = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
-  rotatingSquare.style.height = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
+  /* draw rotating square */
+  if (~rubySquare.spinX && ~rubySquare.spinY) {
+    const rotatingSquare = document.createElement('div');
+    rotatingSquare.classList.add('rotating-square');
 
-  rubySquare.appendChild(rotatingSquare);
+    rotatingSquare.style.width = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
+    rotatingSquare.style.height = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
 
+    if (rubySquare.spinDirection) {
+      rotatingSquare.style.top = `${50 * rubySquare.spinX + 2 * rotatingSquareSize - 2}px`;
+      rotatingSquare.style.left = `${50 * rubySquare.spinY + 2 * rotatingSquareSize - 2}px`;
+      rotatingSquare.style.zIndex = '1';
+
+      const direction = document.createElement('span');
+
+      switch (rubySquare.spinDirection) {
+        case 'left':
+          direction.innerText = '↶';
+          break;
+        case 'right':
+          direction.innerText = '↷';
+          break;
+        default:
+          break;
+      }
+
+      rotatingSquare.appendChild(direction);
+    }
+
+    rubySquareDiv.appendChild(rotatingSquare);
+  }
+
+  /* draw ruby square */
   for (let i = 0; i < length; ++i) {
     for (let j = 0; j < length; ++j) {
       const square = document.createElement('div');
       square.id = `${i}-${j}`
       square.classList.add('square');
-      square.classList.add(colors[rubySquareArray[i][j].color]);
-      rubySquare.appendChild(square);
+      square.classList.add(colors[rubySquare.square[i][j]]);
+
+      rubySquareDiv.appendChild(square);
     }
   }
 }
@@ -140,71 +184,43 @@ function drawRubySquare(rubySquareArray, rotatingSquareSize) {
 /**
  * draw solution
  * 
- * @param {object} solution
- * @param {number} rotatingSquareSize
+ * @param {Object} solution
+ * @param {Number} rotatingSquareSize
+ * @param {Element} outputTextSpan
+ * @param {Element} outputSolutionDiv
  * @return {void}
  */
-function drawSolution(solution, rotatingSquareSize) {
+function drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv) {
   if (solution.error) {
     // do smth
   }
 
-  outputText.innerText = solution.outputText;
-  outputSolution.innerHTML = '';
+  outputTextSpan.innerText = solution.outputText;
+  outputSolutionDiv.innerHTML = '';
 
-  solution.steps.forEach(step => {
-    const rubySquare = document.createElement('div');
-    rubySquare.classList.add('ruby-square');
-    rubySquare.classList.add('solution-step');
+  solution.steps.forEach(rubySquare => {
+    const rubySquareDiv = document.createElement('div');
+    rubySquareDiv.classList.add('ruby-square');
+    rubySquareDiv.classList.add('solution-step');
 
-    const length = step.rubySquare.length;
+    drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
 
-    rubySquare.style.width = `${50 * length + 2 * length}px`;
-  
-    if (~step.spinX && ~step.spinY && step.spinDirection) {
-      const rotatingSquare = document.createElement('div');
-
-      rotatingSquare.classList.add('rotating-square');
-
-      rotatingSquare.style.width = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
-      rotatingSquare.style.height = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
-
-      rotatingSquare.style.top = `${50 * step.spinX + 2 * rotatingSquareSize - 2}px`;
-      rotatingSquare.style.left = `${50 * step.spinY + 2 * rotatingSquareSize - 2}px`;
-      rotatingSquare.style.zIndex = '1';
-
-      const direction = document.createElement('span');
-      direction.innerText = '↶';
-      // direction.innerText = '↷';
-      rotatingSquare.appendChild(direction);
-
-      rubySquare.appendChild(rotatingSquare);
-    }
-  
-    for (let i = 0; i < length; ++i) {
-      for (let j = 0; j < length; ++j) {
-        const square = document.createElement('div');
-        square.classList.add('square');
-        square.classList.add(colors[step.rubySquare[i][j].color]);
-        rubySquare.appendChild(square);
-      }
-    }
-
-    outputSolution.appendChild(rubySquare);
+    outputSolutionDiv.appendChild(rubySquareDiv);
   });
 }
-
 
 /**
  * find solution
  * 
- * @param {array} rubySquare
- * @return {object} solution object
+ * @param {Object} rubySquare
+ * @return {Object} solution object
  */
 function findSolution(rubySquare) {
+  // this is just to display an example
+
   const solution = {
     error: false,
-    outputText: 'Steps of short solution',
+    outputText: 'Solution Steps',
     steps: [],
   };
 
@@ -212,11 +228,11 @@ function findSolution(rubySquare) {
     spinX: 1,
     spinY: 1,
     spinDirection: 'left',
-    rubySquare: JSON.parse(JSON.stringify(rubySquare)),
+    square: JSON.parse(JSON.stringify(rubySquare)),
   });
 
 
-  // manual rotate
+  // just manual rotate
   const temp =  rubySquare[1][1];
   rubySquare[1][1] = rubySquare[1][2];
   rubySquare[1][2] = rubySquare[2][2];
@@ -228,7 +244,7 @@ function findSolution(rubySquare) {
     spinX: -1,
     spinY: -1,
     spinDirection: null,
-    rubySquare: rubySquare,
+    square: rubySquare,
   });
 
   return solution;

@@ -129,3 +129,7 @@ button:active {
 .yellow {
   background-color: hsl(60, 100%, 80%);
 }
+
+.blue {
+  background-color: hsl(201, 73%, 61%);
+}
