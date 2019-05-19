@@ -1,17 +1,24 @@
 /* get HTML Elements */
-const rubySquareDiv = document.querySelector('#ruby-square');
+const initialRubySquareDiv = document.querySelector('#ruby-square-initial');
+const finalRubySquareDiv = document.querySelector('#ruby-square-final');
 const commonSquareSizeSelect = document.querySelector('#common-square-size');
 const rotatingSquareSizeSelect = document.querySelector('#rotating-square-size');
 const searchButton = document.querySelector('#search-button');
-
 const outputTextSpan = document.querySelector('#output-text');
 const outputSolutionDiv = document.querySelector('#output-solution');
 
 
 /* set initial values */
-let rubySquare = {
+let initialRubySquare = {
   spinX: 1,
   spinY: 1,
+  spinDirection: null,
+  square: [],
+};
+
+let finalRubySquare = {
+  spinX: -1,
+  spinY: -1,
   spinDirection: null,
   square: [],
 };
@@ -32,8 +39,12 @@ let rotatingSquareSize = 2;
 commonSquareSizeSelect.value = commonSquareSize;
 rotatingSquareSizeSelect.value = rotatingSquareSize;
 
-rubySquare = getRubySquare(commonSquareSize);
-drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
+initialRubySquare.square = getRubySquare(commonSquareSize);
+drawRubySquare(initialRubySquare, rotatingSquareSize, initialRubySquareDiv);
+
+finalRubySquare.square = getRubySquare(commonSquareSize);
+drawRubySquare(finalRubySquare, rotatingSquareSize, finalRubySquareDiv);
+
 drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv);
 
 
@@ -41,18 +52,21 @@ drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv);
 commonSquareSizeSelect.addEventListener('change', (e) => {
   commonSquareSize = Number(e.target.value);
 
-  rubySquare = getRubySquare(commonSquareSize);
-  drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
+  initialRubySquare.square = getRubySquare(commonSquareSize);
+  drawRubySquare(initialRubySquare, rotatingSquareSize, initialRubySquareDiv);
+  
+  finalRubySquare.square = getRubySquare(commonSquareSize);
+  drawRubySquare(finalRubySquare, rotatingSquareSize, finalRubySquareDiv);
 });
 
 rotatingSquareSizeSelect.addEventListener('change', (e) => {
   rotatingSquareSize = Number(e.target.value);
 
-  drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv);
+  drawRubySquare(initialRubySquare, rotatingSquareSize, initialRubySquareDiv);
 });
 
-rubySquareDiv.addEventListener('click', (e) => {
-  if (e.target === rubySquareDiv) return;
+initialRubySquareDiv.addEventListener('click', (e) => {
+  if (e.target === initialRubySquareDiv) return;
 
   const square = e.target;
   const ids = square.id.split('-');
@@ -60,13 +74,33 @@ rubySquareDiv.addEventListener('click', (e) => {
   const i = Number(ids[0]);
   const j = Number(ids[1]);
   
-  const oldColor = colors[rubySquare.square[i][j]];
+  const oldColor = colors[initialRubySquare.square[i][j]];
 
-  rubySquare.square[i][j] = rubySquare.square[i][j] === (colors.length - 1) 
+  initialRubySquare.square[i][j] = initialRubySquare.square[i][j] === (colors.length - 1) 
     ? 0
-    : rubySquare.square[i][j] + 1;
+    : initialRubySquare.square[i][j] + 1;
 
-  const newColor = colors[rubySquare.square[i][j]];
+  const newColor = colors[initialRubySquare.square[i][j]];
+
+  square.classList.replace(oldColor, newColor);
+});
+
+finalRubySquareDiv.addEventListener('click', (e) => {
+  if (e.target === finalRubySquareDiv) return;
+
+  const square = e.target;
+  const ids = square.id.split('-');
+
+  const i = Number(ids[0]);
+  const j = Number(ids[1]);
+  
+  const oldColor = colors[finalRubySquare.square[i][j]];
+
+  finalRubySquare.square[i][j] = finalRubySquare.square[i][j] === (colors.length - 1) 
+    ? 0
+    : finalRubySquare.square[i][j] + 1;
+
+  const newColor = colors[finalRubySquare.square[i][j]];
 
   square.classList.replace(oldColor, newColor);
 });
@@ -76,7 +110,7 @@ searchButton.addEventListener('click', () => {
   commonSquareSizeSelect.disabled = true;
   rotatingSquareSizeSelect.disabled = true;
 
-  const solution = findSolution(rubySquare.square);
+  const solution = findSolution(initialRubySquare.square, finalRubySquare.square, rotatingSquareSize);
   drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv);
 
   searchButton.disabled = false;
@@ -89,18 +123,13 @@ searchButton.addEventListener('click', () => {
  * get ruby square
  * 
  * @param {Number} squareSize - side of square
- * @return {Object} ruby square
+ * @return {Array} ruby square
  */
 function getRubySquare(squareSize) {
-  const rubySquare = {
-    spinX: 1,
-    spinY: 1,
-    spinDirection: null,
-    square: [],
-  };
+  const rubySquare = [];
 
   for (let i = 0; i < squareSize; ++i) {
-    rubySquare.square[i] = [];
+    rubySquare[i] = [];
 
     const isTop = !Math.floor(i / (squareSize / 2));
 
@@ -115,7 +144,7 @@ function getRubySquare(squareSize) {
       else if (isLeft) color = 2;
       else color = 3;
 
-      rubySquare.square[i][j] = color;
+      rubySquare[i][j] = color;
     }
   }
 
@@ -212,10 +241,12 @@ function drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSoluti
 /**
  * find solution
  * 
- * @param {Object} rubySquare
+ * @param {Array} intialRubySquare
+ * @param {Array} finalRubySquare
+ * @param {Number} rotatingSquareSize
  * @return {Object} solution object
  */
-function findSolution(rubySquare) {
+function findSolution(intialRubySquare, finalRubySquare, rotatingSquareSize) {
   // this is just to display an example
 
   const solution = {
@@ -228,24 +259,26 @@ function findSolution(rubySquare) {
     spinX: 1,
     spinY: 1,
     spinDirection: 'left',
-    square: JSON.parse(JSON.stringify(rubySquare)),
+    square: JSON.parse(JSON.stringify(intialRubySquare)),
   });
 
 
   // just manual rotate
-  const temp =  rubySquare[1][1];
-  rubySquare[1][1] = rubySquare[1][2];
-  rubySquare[1][2] = rubySquare[2][2];
-  rubySquare[2][2] = rubySquare[2][1];
-  rubySquare[2][1] = temp;
+  const temp =  intialRubySquare[1][1];
+  intialRubySquare[1][1] = intialRubySquare[1][2];
+  intialRubySquare[1][2] = intialRubySquare[2][2];
+  intialRubySquare[2][2] = intialRubySquare[2][1];
+  intialRubySquare[2][1] = temp;
 
 
   solution.steps.push({
     spinX: -1,
     spinY: -1,
     spinDirection: null,
-    square: rubySquare,
+    square: JSON.parse(JSON.stringify(intialRubySquare)),
   });
+
+  console.log(JSON.stringify(intialRubySquare) === JSON.stringify(finalRubySquare));
 
   return solution;
 }

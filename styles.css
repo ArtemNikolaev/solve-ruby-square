@@ -62,11 +62,17 @@ button:active {
   margin-left: 16px;
 }
 
-.preview {
+.input-data {
+  display: flex;
+
   padding-bottom: 16px;
   margin-bottom: 16px;
 
   border-bottom: 1px solid hsl(0, 0%, 80%);
+}
+
+.input-data > * + * {
+  margin-left: 16px;
 }
 
 .ruby-square {
