@@ -9,14 +9,14 @@ const outputSolutionDiv = document.querySelector('#output-solution');
 
 
 /* set initial values */
-let initialRubySquare = {
+const initialRubySquare = {
   spinX: 1,
   spinY: 1,
   spinDirection: null,
   square: [],
 };
 
-let finalRubySquare = {
+const finalRubySquare = {
   spinX: -1,
   spinY: -1,
   spinDirection: null,
@@ -157,7 +157,7 @@ function getRubySquare(squareSize) {
  * @param {Object} rubySquare
  * @param {Number} rotatingSquareSize
  * @param {Element} rubySquareDiv
- * @return {void}
+ * @return {Void}
  */
 function drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv) {
   const length = rubySquare.square.length;
@@ -217,13 +217,9 @@ function drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv) {
  * @param {Number} rotatingSquareSize
  * @param {Element} outputTextSpan
  * @param {Element} outputSolutionDiv
- * @return {void}
+ * @return {Void}
  */
 function drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSolutionDiv) {
-  if (solution.error) {
-    // do smth
-  }
-
   outputTextSpan.innerText = solution.outputText;
   outputSolutionDiv.innerHTML = '';
 
@@ -241,44 +237,203 @@ function drawSolution(solution, rotatingSquareSize, outputTextSpan, outputSoluti
 /**
  * find solution
  * 
- * @param {Array} intialRubySquare
+ * @param {Array} initialRubySquare
  * @param {Array} finalRubySquare
  * @param {Number} rotatingSquareSize
  * @return {Object} solution object
  */
-function findSolution(intialRubySquare, finalRubySquare, rotatingSquareSize) {
-  // this is just to display an example
+function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
+  const start = 'start';
+  console.time(start);
 
   const solution = {
-    error: false,
     outputText: 'Solution Steps',
     steps: [],
   };
 
-  solution.steps.push({
-    spinX: 1,
-    spinY: 1,
-    spinDirection: 'left',
-    square: JSON.parse(JSON.stringify(intialRubySquare)),
-  });
+  const stringifiedFinalRubySquare = JSON.stringify(finalRubySquare);
 
+  if (JSON.stringify(initialRubySquare) === stringifiedFinalRubySquare) {
+    solution.outputText = 'No need to change anything to solve';
+    return solution;
+  }
 
-  // just manual rotate
-  const temp =  intialRubySquare[1][1];
-  intialRubySquare[1][1] = intialRubySquare[1][2];
-  intialRubySquare[1][2] = intialRubySquare[2][2];
-  intialRubySquare[2][2] = intialRubySquare[2][1];
-  intialRubySquare[2][1] = temp;
+  const rotatingSquares = getRotatingSquares(initialRubySquare, rotatingSquareSize);
 
+  const resultOfRevolve = {
+    snapshots: {},
+    steps: [],
+  };
 
-  solution.steps.push({
-    spinX: -1,
-    spinY: -1,
-    spinDirection: null,
-    square: JSON.parse(JSON.stringify(intialRubySquare)),
-  });
+  const rotatingSquaresLength = rotatingSquares.length;
+  let level = 1;
 
-  console.log(JSON.stringify(intialRubySquare) === JSON.stringify(finalRubySquare));
+  while (level < 5) {
+    for (let i = 0; i < rotatingSquaresLength; ++i)  {
+      const tempRubySquare = JSON.parse(JSON.stringify(initialRubySquare));
 
+      if (revolve(rotatingSquares, i, level, resultOfRevolve, tempRubySquare, stringifiedFinalRubySquare)) {
+        resultOfRevolve.steps.forEach((step) => {
+          step.square = JSON.parse(step.square);
+          solution.steps.push(step);
+        });
+        
+        console.timeEnd(start);
+        return solution;
+      }
+
+      resultOfRevolve.steps = [];
+    }
+
+    level += 1;
+  }
+
+  solution.outputText = 'No solution';
+
+  console.timeEnd(start);
   return solution;
+}
+
+/**
+ *  iterate over all options
+ * 
+ * @param {Array} rotatingSquares
+ * @param {Number} rotatingSquareNumber
+ * @param {Number} currentLevel
+ * @param {Object} resultOfRevolve
+ * @param {Array} rubySquare
+ * @param {String} finalRubySquare
+ * @return {Boolean}
+ */
+function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRevolve, rubySquare, finalRubySquare) {
+  if (currentLevel <= 0) return false;
+
+  if (resultOfRevolve.snapshots[rubySquare] && resultOfRevolve.snapshots[rubySquare] > currentLevel) {
+    return false;
+  }
+
+  resultOfRevolve.snapshots[rubySquare] = currentLevel;
+
+  // const dependentLength = rotatingSquares[rotatingSquareNumber].dependent.length;
+
+  for (let i = 0; i < 4; ++i) {
+    const stringifiedRubySquare = JSON.stringify(rubySquare);
+
+    if (stringifiedRubySquare === finalRubySquare) {
+      resultOfRevolve.steps.push({
+        spinX: -1,
+        spinY: -1,
+        spinDirection: null,
+        square: stringifiedRubySquare,
+      });
+
+      return true;
+    }
+
+    resultOfRevolve.steps.push({
+      spinX: rotatingSquares[rotatingSquareNumber].coordinates[0][0],
+      spinY: rotatingSquares[rotatingSquareNumber].coordinates[0][1],
+      spinDirection: 'right',
+      square: stringifiedRubySquare,
+    });
+
+    turnSquare(rotatingSquares[rotatingSquareNumber], rubySquare);
+
+    for (let j = 0; j < 9 /* dependentLength */; ++j) {
+      if (j === rotatingSquareNumber) continue;
+
+      const returnValue = revolve(
+        rotatingSquares,
+        j, // rotatingSquares[rotatingSquareNumber].dependent[j],
+        (currentLevel - 1),
+        resultOfRevolve,
+        JSON.parse(JSON.stringify(rubySquare)),
+        finalRubySquare,
+      );
+
+      if (returnValue) return true;
+    }
+  }
+
+  resultOfRevolve.steps.splice(-4);
+  
+  return false;
+}
+
+/**
+ *  get rotating square state
+ * 
+ * @param {Array} rotatingSquare
+ * @param {Array} rubySquare
+ * @return {Void}
+ */
+function turnSquare(rotatingSquare, rubySquare) {
+  const side = rotatingSquare.side;
+
+  const y = rotatingSquare.coordinates[0][0];
+  const x = rotatingSquare.coordinates[0][1];
+
+  for (let r = 0; r < side / 2; ++r) {
+    for (let c = r; c < side - r - 1; ++c) {
+      const temp = rubySquare[r + y][c + x];
+      rubySquare[r + y][c + x] = rubySquare[side - c - 1 + y][r + x];
+      rubySquare[side - c - 1 + y][r + x] = rubySquare[side - r - 1 + y][side - c -1 + x];
+      rubySquare[side - r - 1 + y][side - c - 1 + x] = rubySquare[c + y][side - r - 1 + x];
+      rubySquare[c + y][side - r - 1 + x] = temp;
+    }
+  }
+}
+
+/**
+ * get all the squares with their dependents
+ * 
+ * @param {Array} rubySquare
+ * @param {Number} rotatingSquareSize
+ * @return {Array} rotatingSquares
+ */
+function getRotatingSquares(rubySquare, rotatingSquareSize) {
+  const rotatingSquares = [];
+
+  const numberOfRotatingSquaresPerLine = rubySquare.length - rotatingSquareSize + 1;
+
+  for (let rotatingRow = 0; rotatingRow < numberOfRotatingSquaresPerLine; ++rotatingRow) {
+    for (let rotatingCol = 0; rotatingCol < numberOfRotatingSquaresPerLine; ++rotatingCol) {
+      const coordinates = [];
+
+      for (let row = 0; row < rotatingSquareSize; ++row) {
+        for (let col = 0; col < rotatingSquareSize; ++col) {
+          coordinates.push([rotatingRow + row, rotatingCol + col]);
+        }
+      }
+
+      rotatingSquares.push({
+        coordinates,
+        side: rotatingSquareSize,
+        dependent: [],
+      });
+    }
+  }
+
+  const rotatingSquaresLength = rotatingSquares.length;
+  const rotatingSquareCoordinatesLength = rotatingSquares[0].coordinates.length;
+
+  for (let r1 = 0; r1 < rotatingSquaresLength; ++r1) {
+    nextRotatingSquare:
+    for (let r2 = 0; r2 < rotatingSquaresLength; ++r2) {
+
+      for (let c1 = 0; c1 < rotatingSquareCoordinatesLength; ++c1) {
+        for (let c2 = 0; c2 < rotatingSquareCoordinatesLength; ++c2) {
+          if (r1 !== r2
+            && rotatingSquares[r1].coordinates[c1][0] === rotatingSquares[r2].coordinates[c2][0]
+            && rotatingSquares[r1].coordinates[c1][1] === rotatingSquares[r2].coordinates[c2][1]) {
+            //
+            rotatingSquares[r1].dependent.push(r2);
+            continue nextRotatingSquare;
+          }
+        }
+      }
+    }
+  }
+
+  return rotatingSquares;
 }
