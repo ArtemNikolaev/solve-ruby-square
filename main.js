@@ -351,7 +351,11 @@ function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRe
     turnSquare(rotatingSquares[rotatingSquareNumber], rubySquare);
 
     for (let j = 0; j < 9 /* dependentLength */; ++j) {
-      if (j === rotatingSquareNumber) continue;
+      if (rotatingSquares[rotatingSquareNumber].dependent.every(square => square !== j)
+        && j <= rotatingSquareNumber) {
+        //
+        continue;
+      }
 
       const returnValue = revolve(
         rotatingSquares,
