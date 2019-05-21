@@ -315,6 +315,8 @@ function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRe
   resultOfRevolve.snapshots[rubySquare] = currentLevel;
 
   // const dependentLength = rotatingSquares[rotatingSquareNumber].dependent.length;
+  let spinDirection = 'right';
+  const stringifiedFirstSpinRubySquare = JSON.stringify(rubySquare);
 
   for (let i = 0; i < 4; ++i) {
     const stringifiedRubySquare = JSON.stringify(rubySquare);
@@ -330,12 +332,21 @@ function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRe
       return true;
     }
 
-    resultOfRevolve.steps.push({
-      spinX: rotatingSquares[rotatingSquareNumber].coordinates[0][0],
-      spinY: rotatingSquares[rotatingSquareNumber].coordinates[0][1],
-      spinDirection: 'right',
-      square: stringifiedRubySquare,
-    });
+    if (i === 2) {
+      resultOfRevolve.steps.splice(-2);
+      spinDirection = 'left';
+    } else if (i === 3) {
+      resultOfRevolve.steps.pop();
+    }
+
+    if (i < 3) {
+      resultOfRevolve.steps.push({
+        spinX: rotatingSquares[rotatingSquareNumber].coordinates[0][0],
+        spinY: rotatingSquares[rotatingSquareNumber].coordinates[0][1],
+        spinDirection,
+        square: i === 2 ? stringifiedFirstSpinRubySquare : stringifiedRubySquare,
+      });
+    }
 
     turnSquare(rotatingSquares[rotatingSquareNumber], rubySquare);
 
@@ -354,8 +365,6 @@ function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRe
       if (returnValue) return true;
     }
   }
-
-  resultOfRevolve.steps.splice(-4);
   
   return false;
 }
