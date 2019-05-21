@@ -175,12 +175,12 @@ function drawRubySquare(rubySquare, rotatingSquareSize, rubySquareDiv) {
     const rotatingSquare = document.createElement('div');
     rotatingSquare.classList.add('rotating-square');
 
-    rotatingSquare.style.width = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
-    rotatingSquare.style.height = `${50 * rotatingSquareSize + 2 * rotatingSquareSize - 2}px`;
+    rotatingSquare.style.width = `${50 * rotatingSquareSize + 2 * rotatingSquareSize + 2}px`;
+    rotatingSquare.style.height = `${50 * rotatingSquareSize + 2 * rotatingSquareSize + 2}px`;
 
     if (rubySquare.spinDirection) {
-      rotatingSquare.style.top = `${50 * rubySquare.spinX + 2 * rotatingSquareSize - 2}px`;
-      rotatingSquare.style.left = `${50 * rubySquare.spinY + 2 * rotatingSquareSize - 2}px`;
+      rotatingSquare.style.top = `${50 * rubySquare.spinX + 2 * rubySquare.spinX}px`;
+      rotatingSquare.style.left = `${50 * rubySquare.spinY + 2 * rubySquare.spinY}px`;
       rotatingSquare.style.zIndex = '1';
 
       const direction = document.createElement('span');
