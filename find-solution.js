@@ -5,6 +5,9 @@ onmessage = (e) => {
   }
 }
 
+let iterations = 0;
+let match = 0;
+
 /**
  * find solution
  * 
@@ -30,6 +33,7 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
   }
 
   const rotatingSquares = getRotatingSquares(initialRubySquare, rotatingSquareSize);
+  excludeSolidColors(rotatingSquares, initialRubySquare);
 
   const resultOfRevolve = {
     snapshots: {},
@@ -39,7 +43,7 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
   const rotatingSquaresLength = rotatingSquares.length;
   let level = 1;
 
-  while (level < 5) {
+  while (level < 6) {
     for (let i = 0; i < rotatingSquaresLength; ++i)  {
       const tempRubySquare = JSON.parse(JSON.stringify(initialRubySquare));
 
@@ -48,7 +52,10 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
           step.square = JSON.parse(step.square);
           solution.steps.push(step);
         });
-        
+
+        console.log('iterations', iterations);
+        console.log('snapshots', Object.keys(resultOfRevolve.snapshots).length);
+        console.log('snapshots match', match);
         console.timeEnd(start);
         return solution;
       }
@@ -61,6 +68,9 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
 
   solution.outputText = 'No solution';
 
+  console.log('iterations', iterations);
+  console.log('snapshots', Object.keys(resultOfRevolve.snapshots).length);
+  console.log('snapshots match', match);
   console.timeEnd(start);
   return solution;
 }
@@ -78,11 +88,15 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
  */
 function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRevolve, rubySquare, finalRubySquare) {
   if (currentLevel <= 0) return false;
-
+  
   if (resultOfRevolve.snapshots[rubySquare] && resultOfRevolve.snapshots[rubySquare] > currentLevel) {
+    match += 1;
     return false;
   }
-
+  
+  const rotatingSquareState = getSquareState(rotatingSquares[rotatingSquareNumber].coordinates, rubySquare);
+  if (rotatingSquares[rotatingSquareNumber].usedStates.has(rotatingSquareState)) return false;
+  
   resultOfRevolve.snapshots[rubySquare] = currentLevel;
 
   // const dependentLength = rotatingSquares[rotatingSquareNumber].dependent.length;
@@ -90,6 +104,8 @@ function revolve(rotatingSquares, rotatingSquareNumber, currentLevel, resultOfRe
   const stringifiedFirstSpinRubySquare = JSON.stringify(rubySquare);
 
   for (let i = 0; i < 4; ++i) {
+    iterations += 1;
+
     const stringifiedRubySquare = JSON.stringify(rubySquare);
 
     if (stringifiedRubySquare === finalRubySquare) {
@@ -169,6 +185,48 @@ function turnSquare(rotatingSquare, rubySquare) {
 }
 
 /**
+ *  get rotating square state
+ * 
+ * @param {Array} coordinates
+ * @param {Array} rubySquare
+ * @return {String} state
+ */
+function getSquareState(coordinates, rubySquare) {
+  const state = [];
+
+  coordinates.forEach((coordinate) => {
+    state.push(rubySquare[coordinate[0]][coordinate[1]]);
+  });
+
+  return state.join('');
+}
+
+/**
+ *  exclude solid colors
+ * 
+ * @param {Array} rotatingSquares
+ * @param {Array} rubySquare
+ * @return {Void}
+ */
+function excludeSolidColors(rotatingSquares, rubySquare) {
+  /* get number of color */
+  const rubySquareSquareLength = rubySquare.length;
+  const colors = new Set();
+
+  for (let r = 0; r < rubySquareSquareLength; ++r) {
+    for (let c = 0; c < rubySquareSquareLength; ++c) {
+      colors.add(rubySquare[r][c]);
+    }
+  }
+
+  colors.forEach((color) => {
+    rotatingSquares.forEach((square => {
+      square.usedStates.add(`${color}`.repeat(square.coordinates.length));
+    }));
+  });
+}
+
+/**
  * get all the squares with their dependents
  * 
  * @param {Array} rubySquare
@@ -194,6 +252,7 @@ function getRotatingSquares(rubySquare, rotatingSquareSize) {
         coordinates,
         side: rotatingSquareSize,
         dependent: [],
+        usedStates: new Set(),
       });
     }
   }
