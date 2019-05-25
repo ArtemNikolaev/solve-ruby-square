@@ -40,7 +40,7 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
 
   const snapshots = new Set();
 
-  const maxLevel = 5;
+  const maxLevel = 6;
 
   const spinTree = {};
 
@@ -84,12 +84,12 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
  */
 function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, rotatingSquaresLength, stringifiedFinalRubySquare) {
   if (currentLevel > maxLevel) return null;
+  console.log('level', currentLevel);
 
   const levelLength = spinTree[currentLevel].length;
 
   for (let i = 0; i < levelLength; ++i) {
     const rotatedSquareN = spinTree[currentLevel][i].rotatedSquareN;
-    snapshots.add(spinTree[currentLevel][i].rubySquare);
 
     for (let j = 0; j < rotatingSquaresLength; ++j) {
       const rubySquare = JSON.parse(spinTree[currentLevel][i].rubySquare);
@@ -102,108 +102,119 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
       }
   
       turnSquare(rotatingSquares[j], rubySquare);
-
       const stringifiedRubySquare1 = JSON.stringify(rubySquare);
 
-      if (stringifiedRubySquare1 === stringifiedFinalRubySquare) {
-        return [
-          {
-            spinX: rotatingSquares[j].coordinates[0][0],
-            spinY: rotatingSquares[j].coordinates[0][1],
-            spinDirection: 'right',
-            square: spinTree[currentLevel][i].rubySquare,
-
-            prevSquareN: i,
-          },
-          {
-            spinX: -1,
-            spinY: -1,
-            spinDirection: null,
-            square: stringifiedRubySquare1,
-          }
-        ];
-      }
-
-      if (!snapshots.has(stringifiedRubySquare1)) {
-        spinTree[currentLevel + 1].push({
-          rubySquare: stringifiedRubySquare1,
-          rotatedSquareN: j,
-
-          prevSquare: spinTree[currentLevel][i].rubySquare,
-          prevSquareN: i,
-          spinDirection: 'right',
-        });
-      } else matches += 1;
-
       turnSquare(rotatingSquares[j], rubySquare);
-
       const stringifiedRubySquare2 = JSON.stringify(rubySquare);
 
-      if (stringifiedRubySquare2 === stringifiedFinalRubySquare) {
-        return [
-          {
-            spinX: rotatingSquares[j].coordinates[0][0],
-            spinY: rotatingSquares[j].coordinates[0][1],
-            spinDirection: 'right',
-            square: stringifiedRubySquare1,
-
-            prevSquareN: i,
-          },
-          {
-            spinX: -1,
-            spinY: -1,
-            spinDirection: null,
-            square: stringifiedRubySquare2,
-          }
-        ];
-      }
-
-      if (!snapshots.has(stringifiedRubySquare2)) {
-        spinTree[currentLevel + 2].push({
-          rubySquare: stringifiedRubySquare2,
-          rotatedSquareN: j,
-
-          prevSquare: stringifiedRubySquare1,
-          prevSquareN: spinTree[currentLevel + 1].length - 1,
-          spinDirection: 'right',
-        });
-      } else matches += 1;
-
       turnSquare(rotatingSquares[j], rubySquare);
-
       const stringifiedRubySquare3 = JSON.stringify(rubySquare);
 
-      if (stringifiedRubySquare3 === stringifiedFinalRubySquare) {
-        return [
-          {
-            spinX: rotatingSquares[j].coordinates[0][0],
-            spinY: rotatingSquares[j].coordinates[0][1],
-            spinDirection: 'left',
-            square: spinTree[currentLevel][i].rubySquare,
+      if (!snapshots.has(stringifiedRubySquare1)
+        || !snapshots.has(stringifiedRubySquare1)
+        ||!snapshots.has(stringifiedRubySquare1)) {
+        //
 
-            prevSquareN: i,
-          },
-          {
-            spinX: -1,
-            spinY: -1,
-            spinDirection: null,
-            square: stringifiedRubySquare3,
-          }
-        ];
-      }
+        iterations += 1;
 
-      if (!snapshots.has(stringifiedRubySquare3)) {
+        if (stringifiedRubySquare1 === stringifiedFinalRubySquare) {
+          return [
+            {
+              spinX: rotatingSquares[j].coordinates[0][0],
+              spinY: rotatingSquares[j].coordinates[0][1],
+              spinDirection: 'right',
+              square: spinTree[currentLevel][i].rubySquare,
+  
+              prevSquareN: i,
+            },
+            {
+              spinX: -1,
+              spinY: -1,
+              spinDirection: null,
+              square: stringifiedRubySquare1,
+            }
+          ];
+        }
+
+        if (stringifiedRubySquare2 === stringifiedFinalRubySquare) {
+          return [
+            {
+              spinX: rotatingSquares[j].coordinates[0][0],
+              spinY: rotatingSquares[j].coordinates[0][1],
+              spinDirection: 'right',
+              square: stringifiedRubySquare1,
+  
+              prevSquareN: i,
+            },
+            {
+              spinX: -1,
+              spinY: -1,
+              spinDirection: null,
+              square: stringifiedRubySquare2,
+            }
+          ];
+        }
+
+        if (stringifiedRubySquare3 === stringifiedFinalRubySquare) {
+          return [
+            {
+              spinX: rotatingSquares[j].coordinates[0][0],
+              spinY: rotatingSquares[j].coordinates[0][1],
+              spinDirection: 'left',
+              square: spinTree[currentLevel][i].rubySquare,
+  
+              prevSquareN: i,
+            },
+            {
+              spinX: -1,
+              spinY: -1,
+              spinDirection: null,
+              square: stringifiedRubySquare3,
+            }
+          ];
+        }
+  
+        snapshots.add(stringifiedRubySquare1);
+        snapshots.add(stringifiedRubySquare2);
+        snapshots.add(stringifiedRubySquare3);
+
+        spinTree[currentLevel + 1].push({
+          rubySquare: stringifiedRubySquare1,
+          spin: JSON.stringify([
+            j, /* rotatedSquareN */
+            i, /* prevSquareN */
+            'right',
+          ]),
+        });
+  
+        spinTree[currentLevel + 2].push({
+          rubySquare: stringifiedRubySquare2,
+          spin: JSON.stringify([
+            j, /* rotatedSquareN */
+            spinTree[currentLevel + 1].length - 1, /* prevSquareN */
+            'right',
+          ]),
+        });
+
         spinTree[currentLevel + 1].push({
           rubySquare: stringifiedRubySquare3,
-          rotatedSquareN: j,
-
-          prevSquare: spinTree[currentLevel][i].rubySquare,
-          prevSquareN: i,
-          spinDirection: 'left',
+          spin: JSON.stringify([
+            j, /* rotatedSquareN */
+            i, /* prevSquareN */
+            'left',
+          ]),
         });
-      } else matches += 1;
 
-      iterations += 1;
+        if (!(iterations % 1000000)) {
+          console.log('iterations', iterations);
+          console.log('snapshots', snapshots.size);
+          console.log('matches', matches);
+          console.log('length', spinTree[currentLevel].length);
+          console.log('next length', spinTree[currentLevel + 1].length);
+  
+          spinTree[currentLevel + 1].splice(0, 3000000);
+        }
+      } matches += 1;
     }
   }
 
@@ -211,14 +222,20 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
 
   if (steps) {
     const square = spinTree[currentLevel + 1][steps[0].prevSquareN];
+    const rubySquare = JSON.parse(square.rubySquare);
+    const spin = JSON.parse(square.spin);
+
+    turnSquare(rotatingSquares[spin[0]], rubySquare);
+    turnSquare(rotatingSquares[spin[0]], rubySquare);
+    turnSquare(rotatingSquares[spin[0]], rubySquare);
 
     steps.unshift({
-      spinX: rotatingSquares[square.rotatedSquareN].coordinates[0][0],
-      spinY: rotatingSquares[square.rotatedSquareN].coordinates[0][1],
-      spinDirection: square.spinDirection,
-      square: square.prevSquare,
+      spinX: rotatingSquares[spin[0]].coordinates[0][0],
+      spinY: rotatingSquares[spin[0]].coordinates[0][1],
+      spinDirection: spin[2],
+      square: JSON.stringify(rubySquare),
 
-      prevSquareN: square.prevSquareN,
+      prevSquareN: spin[1],
     });
   }
 
