@@ -40,7 +40,7 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
 
   const snapshots = new Set();
 
-  const maxLevel = 6;
+  const maxLevel = 7;
 
   const spinTree = {};
 
@@ -50,7 +50,7 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
 
   spinTree[0][0] = {
     rubySquare: stringifiedInitialRubySquare,
-    rotatedSquareN: -1,
+    spin: JSON.stringify([-1]),
   };
 
   const steps = revolve(0, maxLevel, spinTree, snapshots, rotatingSquares, rotatingSquaresLength, stringifiedFinalRubySquare);
@@ -89,7 +89,7 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
   const levelLength = spinTree[currentLevel].length;
 
   for (let i = 0; i < levelLength; ++i) {
-    const rotatedSquareN = spinTree[currentLevel][i].rotatedSquareN;
+    const rotatedSquareN = JSON.parse(spinTree[currentLevel][i].spin)[0];
 
     for (let j = 0; j < rotatingSquaresLength; ++j) {
       const rubySquare = JSON.parse(spinTree[currentLevel][i].rubySquare);
@@ -100,7 +100,7 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
       if (~rotatedSquareN && rotatingSquares[j].dependent.every(s => s !== rotatedSquareN) && rotatedSquareN <= j) {
         continue;
       }
-  
+
       turnSquare(rotatingSquares[j], rubySquare);
       const stringifiedRubySquare1 = JSON.stringify(rubySquare);
 
@@ -138,6 +138,14 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
 
         if (stringifiedRubySquare2 === stringifiedFinalRubySquare) {
           return [
+            {
+              spinX: rotatingSquares[j].coordinates[0][0],
+              spinY: rotatingSquares[j].coordinates[0][1],
+              spinDirection: 'right',
+              square: spinTree[currentLevel][i].rubySquare,
+  
+              prevSquareN: i,
+            },
             {
               spinX: rotatingSquares[j].coordinates[0][0],
               spinY: rotatingSquares[j].coordinates[0][1],
@@ -211,10 +219,8 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
           console.log('matches', matches);
           console.log('length', spinTree[currentLevel].length);
           console.log('next length', spinTree[currentLevel + 1].length);
-  
-          spinTree[currentLevel + 1].splice(0, 3000000);
         }
-      } matches += 1;
+      } else matches += 1;
     }
   }
 
