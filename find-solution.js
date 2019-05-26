@@ -111,8 +111,8 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
       const stringifiedRubySquare3 = JSON.stringify(rubySquare);
 
       if (!snapshots.has(stringifiedRubySquare1)
-        || !snapshots.has(stringifiedRubySquare1)
-        ||!snapshots.has(stringifiedRubySquare1)) {
+        || !snapshots.has(stringifiedRubySquare2)
+        || !snapshots.has(stringifiedRubySquare3)) {
         //
 
         iterations += 1;
