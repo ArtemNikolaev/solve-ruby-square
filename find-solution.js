@@ -39,10 +39,11 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
   const rotatingSquaresLength = rotatingSquares.length;
 
   const snapshots = new Set();
+  snapshots.add(stringifiedInitialRubySquare);
 
   const maxLevel = 7;
 
-  const spinTree = {};
+  const spinTree = [];
 
   for (let i = 0; i <= maxLevel + 2; ++i) {
     spinTree[i] = [];
@@ -75,7 +76,7 @@ function findSolution(initialRubySquare, finalRubySquare, rotatingSquareSize) {
  * 
  * @param {Number} currentLevel
  * @param {Number} maxLevel
- * @param {Object} spinTree
+ * @param {Array} spinTree
  * @param {Set} snapshots
  * @param {Array} rotatingSquares
  * @param {Number} rotatingSquaresLength
@@ -92,6 +93,8 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
     const rotatedSquareN = JSON.parse(spinTree[currentLevel][i].spin)[0];
 
     for (let j = 0; j < rotatingSquaresLength; ++j) {
+      iterations += 1;
+
       const rubySquare = JSON.parse(spinTree[currentLevel][i].rubySquare);
 
       const rotatingSquareState = getSquareState(rotatingSquares[j].coordinates, rubySquare);
@@ -110,13 +113,15 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
       turnSquare(rotatingSquares[j], rubySquare);
       const stringifiedRubySquare3 = JSON.stringify(rubySquare);
 
-      if (!snapshots.has(stringifiedRubySquare1)
-        || !snapshots.has(stringifiedRubySquare2)
-        || !snapshots.has(stringifiedRubySquare3)) {
-        //
+      const haveSnapshot1 = snapshots.has(stringifiedRubySquare1);
+      const haveSnapshot2 = snapshots.has(stringifiedRubySquare2);
+      const haveSnapshot3 = snapshots.has(stringifiedRubySquare3);
 
-        iterations += 1;
+      snapshots.add(stringifiedRubySquare1);
+      snapshots.add(stringifiedRubySquare2);
+      snapshots.add(stringifiedRubySquare3);
 
+      if (!haveSnapshot1) {
         if (stringifiedRubySquare1 === stringifiedFinalRubySquare) {
           return [
             {
@@ -136,6 +141,17 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
           ];
         }
 
+        spinTree[currentLevel + 1].push({
+          rubySquare: stringifiedRubySquare1,
+          spin: JSON.stringify([
+            j, /* rotatedSquareN */
+            i, /* prevSquareN */
+            'right',
+          ]),
+        });
+      } else matches += 1;
+
+      if (!haveSnapshot2) {
         if (stringifiedRubySquare2 === stringifiedFinalRubySquare) {
           return [
             {
@@ -163,6 +179,17 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
           ];
         }
 
+        spinTree[currentLevel + 2].push({
+          rubySquare: stringifiedRubySquare2,
+          spin: JSON.stringify([
+            j, /* rotatedSquareN */
+            spinTree[currentLevel + 1].length - 1, /* prevSquareN */
+            'right',
+          ]),
+        });
+      } else matches += 1;
+
+      if (!haveSnapshot3) {
         if (stringifiedRubySquare3 === stringifiedFinalRubySquare) {
           return [
             {
@@ -181,28 +208,6 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
             }
           ];
         }
-  
-        snapshots.add(stringifiedRubySquare1);
-        snapshots.add(stringifiedRubySquare2);
-        snapshots.add(stringifiedRubySquare3);
-
-        spinTree[currentLevel + 1].push({
-          rubySquare: stringifiedRubySquare1,
-          spin: JSON.stringify([
-            j, /* rotatedSquareN */
-            i, /* prevSquareN */
-            'right',
-          ]),
-        });
-  
-        spinTree[currentLevel + 2].push({
-          rubySquare: stringifiedRubySquare2,
-          spin: JSON.stringify([
-            j, /* rotatedSquareN */
-            spinTree[currentLevel + 1].length - 1, /* prevSquareN */
-            'right',
-          ]),
-        });
 
         spinTree[currentLevel + 1].push({
           rubySquare: stringifiedRubySquare3,
@@ -212,15 +217,15 @@ function revolve(currentLevel, maxLevel, spinTree, snapshots, rotatingSquares, r
             'left',
           ]),
         });
-
-        if (!(iterations % 1000000)) {
-          console.log('iterations', iterations);
-          console.log('snapshots', snapshots.size);
-          console.log('matches', matches);
-          console.log('length', spinTree[currentLevel].length);
-          console.log('next length', spinTree[currentLevel + 1].length);
-        }
       } else matches += 1;
+
+      if (!(iterations % 2000000)) {
+        console.log('iterations', iterations);
+        console.log('snapshots', snapshots.size);
+        console.log('matches', matches);
+        console.log('length', spinTree[currentLevel].length);
+        console.log('next length', spinTree[currentLevel + 1].length);
+      }
     }
   }
 
